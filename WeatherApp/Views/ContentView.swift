@@ -8,84 +8,108 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var isShowingCityList: Bool = false
-    @State private var selectedTab: Int = 0
+    // MARK: - State Properties
+    @State private var isShowingCityList = false
+    @State private var selectedTab = 0
+    
+    // MARK: - Environment Objects
     @EnvironmentObject var userDefaultsManager: UserDefaultsManager
     @EnvironmentObject var locationManager: LocationManager
     
-    // Her tab için ayrı ViewModel instance'ları
-    @StateObject private var locationViewModel = WeatherViewModel(cityIdentifier: "location")
-    @State private var cityViewModels: [String: WeatherViewModel] = [:]
+    // MARK: - View Models
+    @StateObject private var weatherViewModelManager = WeatherViewModelManager()
     
     var body: some View {
         NavigationView {
-            weatherTabs
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        isShowingCityList = true
-                    } label: {
-                        Image(systemName: "list.bullet")
-                    }
-                    .tint(.white)
+            mainContent
+                .toolbar {
+                    navigationToolbar
                 }
-            }
-            .fullScreenCover(isPresented: $isShowingCityList) {
-                CityListView(isShowingCityList: $isShowingCityList, selectedTab: $selectedTab)
-            }
-            .onChange(of: locationManager.currentCoordinates) { oldValue, newValue in
-                // Sadece konum tab'i seçiliyken güncelle
-                if let coordinates = newValue, selectedTab == 0 {
-                    locationViewModel.getWeather(lat: coordinates.latitude, lon: coordinates.longitude)
+                .fullScreenCover(isPresented: $isShowingCityList) {
+                    CityListView(
+                        isShowingCityList: $isShowingCityList,
+                        selectedTab: $selectedTab
+                    )
                 }
-            }
+        }
+        .onAppear {
+            setupViewModels()
+        }
+        .onChange(of: userDefaultsManager.addedCities) {
+            setupViewModels()
         }
     }
+}
+
+// MARK: - View Components
+private extension ContentView {
     
-    var weatherTabs: some View {
+    var mainContent: some View {
         ZStack {
-            WeatherBackgroundView()
-            TabView(selection: $selectedTab) {
-                // Konum tab'i
-                WeatherDetailView(
-                    lat: locationManager.currentCoordinates?.latitude ?? 0.0,
-                    lon: locationManager.currentCoordinates?.longitude ?? 0.0,
-                    cityName: locationManager.currentCityName ?? "--"
-                )
-                .tag(0)
-                .id("location")
-                .environmentObject(locationViewModel)
-                .tabItem {
-                    Image(systemName: "location")
-                }
-                
-                // Diğer şehirler için tab'ler
-                let enumaratedCoordinates = Array(userDefaultsManager.addedCities.enumerated())
-                ForEach(enumaratedCoordinates, id: \.element) { index, city in
-                    WeatherDetailView(lat: city.latitude, lon: city.longitude, cityName: city.name)
-                        .tag(index + 1)
-                        .id("\(city.latitude),\(city.longitude)")
-                        .environmentObject(getOrCreateViewModel(for: city))
-                        .tabItem {
-                            Text(city.name)
-                        }
-                }
-            }
-            .tint(.white.opacity(0.8))
-            .tabViewStyle(.page)
-            .indexViewStyle(.page(backgroundDisplayMode: .always))
+            Color.blue.ignoresSafeArea()
+            weatherTabView
         }
     }
     
-    // Her şehir için ayrı ViewModel oluştur veya var olanı getir
-    private func getOrCreateViewModel(for city: City) -> WeatherViewModel {
-        let key = "\(city.latitude),\(city.longitude)"
-        if let existingViewModel = cityViewModels[key] {
-            return existingViewModel
+    var navigationToolbar: some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            Button(action: { isShowingCityList = true }) {
+                Image(systemName: "list.bullet")
+                    .foregroundColor(.white)
+            }
         }
-        
-        let newViewModel = WeatherViewModel(cityIdentifier: key)
-        cityViewModels[key] = newViewModel
-        return newViewModel
     }
+    
+    var weatherTabView: some View {
+        TabView(selection: $selectedTab) {
+            locationTab
+            cityTabs
+        }
+        .tabViewStyle(.page)
+        .indexViewStyle(.page(backgroundDisplayMode: .always))
+        .tint(.white.opacity(0.8))
+    }
+    
+    var locationTab: some View {
+        WeatherDetailView(
+            lat: locationManager.currentCoordinates?.latitude ?? 0.0,
+            lon: locationManager.currentCoordinates?.longitude ?? 0.0,
+            cityName: locationManager.currentCityName ?? "Current Location"
+        )
+        .tag(0)
+        .environmentObject(weatherViewModelManager.locationViewModel)
+        .tabItem {
+            Label("Location", systemImage: "location")
+        }
+    }
+    
+    @ViewBuilder
+    var cityTabs: some View {
+        ForEach(Array(userDefaultsManager.addedCities.enumerated()), id: \.offset) { index, city in
+            WeatherDetailView(
+                lat: city.latitude,
+                lon: city.longitude,
+                cityName: city.name
+            )
+            .tag(index + 1)
+            .environmentObject(weatherViewModelManager.viewModel(for: city))
+            .tabItem {
+                Label(city.name, systemImage: "bullet.circle")
+            }
+        }
+    }
+}
+
+// MARK: - Helper Methods
+private extension ContentView {
+    func setupViewModels() {
+        weatherViewModelManager.setupViewModels(for: userDefaultsManager.addedCities)
+    }
+}
+
+// MARK: - Preview
+#Preview {
+    ContentView()
+        .environmentObject(UserDefaultsManager())
+        .environmentObject(LocationManager())
 }

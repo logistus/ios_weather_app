@@ -23,10 +23,19 @@ struct CityListRow: View {
             .frame(height: 120)
             .overlay(
                 HStack {
-                    Image(weatherViewModel.weatherData.cwIcon)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 50, height: 50)
+                    if let iconImage = UIImage(named: weatherViewModel.weatherData.cwIcon) {
+                        Image(uiImage: iconImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 80)
+                    } else {
+                        // Fallback icon
+                        Image(systemName: "cloud.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 80)
+                            .foregroundColor(.gray)
+                    }
                     Spacer()
                     VStack(alignment: .leading, spacing: 8) {
                         Text(cityName)

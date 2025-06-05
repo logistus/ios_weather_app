@@ -23,6 +23,8 @@ struct WeatherInfoCard<Content: View>: View {
                 HStack(spacing: 5) {
                     if !icon.isEmpty {
                         Image(systemName: icon)
+                    } else {
+                        Image(systemName: "bullet")
                     }
                     Text(title.uppercased())
                 }

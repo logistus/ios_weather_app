@@ -17,15 +17,9 @@ struct MainWeatherView: View {
     
     
     var body: some View {
+        /*
         HStack(spacing: 10) {
-            Text(
-                convertUnixTimeStamp(
-                    timestamp: weatherViewModel.weatherData.cwFetched,
-                    format: "medium",
-                    timezone: weatherViewModel.weatherData.timezone
-                )
-            )
-            .font(.footnote)
+            
             Button {
                 guard isValidCoordinate(lat: lat, lon: lon) else {
                     print("Warning: Invalid coordinates provided")
@@ -37,14 +31,21 @@ struct MainWeatherView: View {
             }
         }
         .padding(.bottom, 5)
+         */
         
         Text(cityName)
             .font(.largeTitle)
             .weatherTextShadow()
             .padding(.top, 5)
+        Text(
+            convertUnixTimeStamp(
+                timestamp: weatherViewModel.weatherData.cwFetched,
+                format: "medium",
+                timezone: weatherViewModel.weatherData.timezone
+            )
+        )
+        .font(.footnote)
         
-        Text("\(weatherViewModel.weatherData.cwDescription.capitalized)")
-            .font(.subheadline)
         HStack (spacing: 20) {
             if let iconImage = UIImage(named: weatherViewModel.weatherData.cwIcon) {
                 Image(uiImage: iconImage)

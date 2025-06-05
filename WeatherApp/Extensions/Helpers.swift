@@ -31,7 +31,6 @@ func isValidCoordinate(lat: Double, lon: Double) -> Bool {
 /// String'den Double'a güvenli dönüştürme
 func safeDoubleConversion(from string: String) -> Double {
     guard let doubleValue = Double(string.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-        print("Warning: Could not convert '\(string)' to Double, using 0.0")
         return 0.0
     }
     

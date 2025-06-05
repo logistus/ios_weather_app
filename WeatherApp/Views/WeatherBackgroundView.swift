@@ -13,7 +13,7 @@ struct WeatherBackgroundView: View {
         LinearGradient(colors: [.blue, .cyan], startPoint: .top, endPoint: .bottom)
                     .ignoresSafeArea()
          */
-        LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .topLeading, endPoint: .bottomTrailing)
+        LinearGradient(gradient: Gradient(colors: [Color.blue, Color.darkBlue]), startPoint: .topLeading, endPoint: .bottomTrailing)
                     .ignoresSafeArea()
     }
 }
