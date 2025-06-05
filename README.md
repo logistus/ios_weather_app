@@ -1,7 +1,7 @@
 # IOSWeatherApp
 A simple weather app built with SwiftUI that shows current weather information based on the user's location or selected cities.
 
-![Demo of Weather App](https://github.com/logistus/ios_weather_app/blob/main/weater_app_gif.gif)
+![Demo of Weather App](https://github.com/logistus/ios_weather_app/blob/main/weather_app.gif)
 ## Tech Stack
 
 - `SwiftUI` for UI design
